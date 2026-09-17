@@ -1,0 +1,110 @@
+import fs from 'fs';
+
+const storePath = './src/services/store.ts';
+let code = fs.readFileSync(storePath, 'utf8');
+
+const newVehicles = `
+  {
+    id: 'veh-1023',
+    cooperativaId: 'coop-daule',
+    numero_unidad: '1023',
+    placa: 'GXY-1234',
+    modelo: 'Toyota Hiace',
+    anio: 2026,
+    color: 'Blanco',
+    capacidad: 15,
+    tipo_vehiculo: 'minibus',
+    foto_vehiculo_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341',
+    socio_id: 'usr-socio',
+    chofer_titular_id: 'usr-chofer',
+    conductor_actual_tipo: 'chofer_titular',
+    estado: 'en_registro',
+    documentos: { matricula_vigencia: '2027-01-01', soat_vigencia: '2027-01-01', revision_tecnica_vigencia: '2027-01-01' },
+    km_actual: 100,
+    fecha_registro: '2026-09-16',
+    ubicacion_actual: null
+  },
+  {
+    id: 'veh-1024',
+    cooperativaId: 'coop-daule',
+    numero_unidad: '1024',
+    placa: 'ABC-5678',
+    modelo: 'Toyota Hiace',
+    anio: 2026,
+    color: 'Blanco',
+    capacidad: 15,
+    tipo_vehiculo: 'minibus',
+    foto_vehiculo_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341',
+    socio_id: 'usr-socio',
+    chofer_titular_id: 'usr-chofer',
+    conductor_actual_tipo: 'chofer_titular',
+    estado: 'en_registro',
+    documentos: { matricula_vigencia: '2027-01-01', soat_vigencia: '2027-01-01', revision_tecnica_vigencia: '2027-01-01' },
+    km_actual: 100,
+    fecha_registro: '2026-09-16',
+    ubicacion_actual: null
+  },
+  {
+    id: 'veh-1025',
+    cooperativaId: 'coop-daule',
+    numero_unidad: '1025',
+    placa: 'DEF-9012',
+    modelo: 'Toyota Hiace',
+    anio: 2026,
+    color: 'Blanco',
+    capacidad: 15,
+    tipo_vehiculo: 'minibus',
+    foto_vehiculo_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341',
+    socio_id: 'usr-socio',
+    chofer_titular_id: 'usr-chofer',
+    conductor_actual_tipo: 'chofer_titular',
+    estado: 'en_registro',
+    documentos: { matricula_vigencia: '2027-01-01', soat_vigencia: '2027-01-01', revision_tecnica_vigencia: '2027-01-01' },
+    km_actual: 100,
+    fecha_registro: '2026-09-16',
+    ubicacion_actual: null
+  },
+  {
+    id: 'veh-1026',
+    cooperativaId: 'coop-daule',
+    numero_unidad: '1026',
+    placa: 'GHI-3456',
+    modelo: 'Toyota Hiace',
+    anio: 2026,
+    color: 'Blanco',
+    capacidad: 15,
+    tipo_vehiculo: 'minibus',
+    foto_vehiculo_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341',
+    socio_id: 'usr-socio',
+    chofer_titular_id: 'usr-chofer',
+    conductor_actual_tipo: 'chofer_titular',
+    estado: 'en_registro',
+    documentos: { matricula_vigencia: '2027-01-01', soat_vigencia: '2027-01-01', revision_tecnica_vigencia: '2027-01-01' },
+    km_actual: 100,
+    fecha_registro: '2026-09-16',
+    ubicacion_actual: null
+  },
+  {
+    id: 'veh-1027',
+    cooperativaId: 'coop-daule',
+    numero_unidad: '1027',
+    placa: 'JKL-7890',
+    modelo: 'Toyota Hiace',
+    anio: 2026,
+    color: 'Blanco',
+    capacidad: 15,
+    tipo_vehiculo: 'minibus',
+    foto_vehiculo_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341',
+    socio_id: 'usr-socio',
+    chofer_titular_id: 'usr-chofer',
+    conductor_actual_tipo: 'chofer_titular',
+    estado: 'en_registro',
+    documentos: { matricula_vigencia: '2027-01-01', soat_vigencia: '2027-01-01', revision_tecnica_vigencia: '2027-01-01' },
+    km_actual: 100,
+    fecha_registro: '2026-09-16',
+    ubicacion_actual: null
+  }
+`;
+
+code = code.replace(/const INITIAL_VEHICULOS: Vehiculo\[\] = \[/, "const INITIAL_VEHICULOS: Vehiculo[] = [" + newVehicles + ",");
+fs.writeFileSync(storePath, code);

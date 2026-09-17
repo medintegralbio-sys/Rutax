@@ -1,0 +1,17 @@
+{
+  "appId": "ec.rutax.smart",
+  "appName": "Rutax-Smart",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "PushNotifications": { "presentationOptions": ["badge", "sound", "alert"] },
+    "Geolocation": { "enableHighAccuracy": true },
+    "LocalNotifications": { "smallIcon": "ic_stat_icon_config_sample" },
+    "SplashScreen": { "launchShowDuration": 2000 }
+  }
+}

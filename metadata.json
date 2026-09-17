@@ -1,0 +1,6 @@
+{
+  "name": "Rutax-Smart",
+  "description": "Sistema SaaS multi-cooperativa para gestión de transporte de ruta fija con despacho FIFO, seguimiento GPS en tiempo real, módulo de pasajeros frecuentes, reservas y notificaciones WhatsApp automáticas.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

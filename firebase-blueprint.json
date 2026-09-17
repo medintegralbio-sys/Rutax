@@ -1,0 +1,420 @@
+{
+  "entities": {
+    "cooperativa": {
+      "title": "Cooperativa",
+      "description": "Empresa de transporte de ruta fija suscrita al SaaS",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "nombre": { "type": "string", "maxLength": 100 },
+        "ruc": { "type": "string", "maxLength": 13 },
+        "logo_url": { "type": "string", "maxLength": 500 },
+        "telefono": { "type": "string", "maxLength": 20 },
+        "direccion": { "type": "string", "maxLength": 200 },
+        "presidente_nombre": { "type": "string", "maxLength": 100 },
+        "presidente_celular": { "type": "string", "maxLength": 20 },
+        "estado": { "type": "string", "enum": ["activa", "suspendida", "prueba"] },
+        "fecha_creacion": { "type": "string", "maxLength": 30 },
+        "fecha_vencimiento_suscripcion": { "type": "string", "maxLength": 30 },
+        "plan": { "type": "string", "enum": ["basico", "pro", "enterprise"] }
+      },
+      "required": ["id", "nombre", "ruc", "estado", "plan", "fecha_vencimiento_suscripcion"]
+    },
+    "usuario": {
+      "title": "Usuario",
+      "description": "Usuario del sistema multi-rol",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "cedula": { "type": "string", "maxLength": 10 },
+        "nombre_completo": { "type": "string", "maxLength": 100 },
+        "telefono": { "type": "string", "maxLength": 20 },
+        "email": { "type": "string", "maxLength": 100 },
+        "rol": { "type": "string", "enum": ["superadmin", "admin_coop", "despachador", "socio", "chofer"] },
+        "rol_secundario": { "type": "string" },
+        "base_asignada": { "type": "string" },
+        "foto_url": { "type": "string", "maxLength": 500 },
+        "licencia_tipo": { "type": "string", "maxLength": 10 },
+        "activo": { "type": "boolean" },
+        "fecha_registro": { "type": "string", "maxLength": 30 },
+        "ultimo_login": { "type": "string", "maxLength": 30 },
+        "huella_registrada": { "type": "boolean" }
+      },
+      "required": ["uid", "cooperativaId", "cedula", "nombre_completo", "rol", "activo"]
+    },
+    "vehiculo": {
+      "title": "Vehiculo",
+      "description": "Unidad de transporte de la flota de la cooperativa",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "numero_unidad": { "type": "string", "maxLength": 20 },
+        "placa": { "type": "string", "maxLength": 10 },
+        "modelo": { "type": "string", "maxLength": 50 },
+        "anio": { "type": "number" },
+        "color": { "type": "string", "maxLength": 30 },
+        "capacidad": { "type": "number", "enum": [4, 6, 11, 15, 32] },
+        "tipo_vehiculo": { "type": "string", "enum": ["sedan", "camioneta", "minibus", "bus"] },
+        "foto_vehiculo_url": { "type": "string", "maxLength": 500 },
+        "socio_id": { "type": "string", "maxLength": 128 },
+        "chofer_titular_id": { "type": "string", "maxLength": 128 },
+        "conductor_actual_tipo": { "type": "string", "enum": ["chofer_titular", "propietario"] },
+        "estado": { "type": "string", "enum": ["activo", "mantenimiento", "bloqueado_por_socio", "en_registro", "inactivo"] },
+        "km_actual": { "type": "number" },
+        "fecha_registro": { "type": "string", "maxLength": 30 }
+      },
+      "required": ["id", "cooperativaId", "numero_unidad", "placa", "modelo", "capacidad", "socio_id", "estado"]
+    },
+    "vehiculo_pendiente": {
+      "title": "VehiculoPendiente",
+      "description": "Solicitud de pre-registro vehicular por auditar",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "placa": { "type": "string", "maxLength": 10 },
+        "modelo": { "type": "string", "maxLength": 50 },
+        "color": { "type": "string", "maxLength": 30 },
+        "propietario_nombre": { "type": "string", "maxLength": 100 },
+        "propietario_cedula": { "type": "string", "maxLength": 10 },
+        "documentos_cargados": { "type": "boolean" },
+        "estado_revision": { "type": "string", "enum": ["pendiente", "aprobado", "rechazado"] },
+        "observaciones": { "type": "string", "maxLength": 500 },
+        "fecha_solicitud": { "type": "string", "maxLength": 30 }
+      },
+      "required": ["id", "cooperativaId", "placa", "propietario_cedula", "estado_revision"]
+    },
+    "base": {
+      "title": "Base",
+      "description": "Terminal o base con geocerca y pre-base virtual",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "nombre": { "type": "string", "maxLength": 100 },
+        "direccion": { "type": "string", "maxLength": 200 },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "radio_geocerca": { "type": "number" },
+        "capacidad_max": { "type": "number" },
+        "color_pin": { "type": "string", "maxLength": 20 },
+        "tiene_prebase": { "type": "boolean" },
+        "tiempo_max_espera_prebase": { "type": "number" },
+        "tiempo_para_avanzar": { "type": "number" }
+      },
+      "required": ["id", "cooperativaId", "nombre", "lat", "lng", "capacidad_max"]
+    },
+    "turno": {
+      "title": "Turno",
+      "description": "Cola FIFO corrida de despacho de vehículos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "baseId": { "type": "string", "maxLength": 64 },
+        "vehiculo_id": { "type": "string", "maxLength": 64 },
+        "chofer_id": { "type": "string", "maxLength": 128 },
+        "numero_turno": { "type": "number" },
+        "ubicacion_fisica": { "type": "string", "enum": ["base_real", "prebase", "desembarcando"] },
+        "hora_llegada": { "type": "string", "maxLength": 30 },
+        "pasajeros_actuales": { "type": "number" },
+        "pasajeros_max": { "type": "number" },
+        "estado": { "type": "string", "enum": ["esperando", "llenando", "listo", "despachado", "desembarcando"] },
+        "motivo_reasignacion": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["id", "cooperativaId", "baseId", "vehiculo_id", "chofer_id", "numero_turno", "estado"]
+    },
+    "log_auditoria": {
+      "title": "LogAuditoria",
+      "description": "Registro inmutable de acciones críticas del sistema",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "usuario_id": { "type": "string", "maxLength": 128 },
+        "accion": { "type": "string", "maxLength": 100 },
+        "detalle": { "type": "string", "maxLength": 1000 },
+        "timestamp": { "type": "string", "maxLength": 30 },
+        "ip": { "type": "string", "maxLength": 45 },
+        "dispositivo": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["id", "cooperativaId", "usuario_id", "accion", "detalle", "timestamp"]
+    },
+    "despacho": {
+      "title": "Despacho",
+      "description": "Historial de viajes de ruta despachados y completados",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "turno_id": { "type": "string", "maxLength": 64 },
+        "vehiculo_id": { "type": "string", "maxLength": 64 },
+        "chofer_id": { "type": "string", "maxLength": 128 },
+        "base_origen_id": { "type": "string", "maxLength": 64 },
+        "base_destino_id": { "type": "string", "maxLength": 64 },
+        "hora_salida": { "type": "string", "maxLength": 30 },
+        "hora_llegada": { "type": "string", "maxLength": 30 },
+        "pasajeros_base": { "type": "number" },
+        "pasajeros_ruta": { "type": "number" },
+        "pasajeros_totales": { "type": "number" },
+        "pasajeros_max": { "type": "number" },
+        "tarifa_plana": { "type": "number" },
+        "recaudacion_bruta": { "type": "number" },
+        "km_inicio": { "type": "number" },
+        "km_fin": { "type": "number" },
+        "estado": { "type": "string", "enum": ["en_ruta", "llegando", "desembarcando", "cerrado"] },
+        "duracion_min": { "type": "number" }
+      },
+      "required": ["id", "cooperativaId", "turno_id", "vehiculo_id", "chofer_id", "hora_salida", "estado"]
+    },
+    "solicitud_pasajero_ruta": {
+      "title": "SolicitudPasajeroRuta",
+      "description": "Recogidas de pasajeros en camino a lo largo de la ruta fija",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "pasajero_nombre": { "type": "string", "maxLength": 100 },
+        "pasajero_telefono": { "type": "string", "maxLength": 20 },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "referencia": { "type": "string", "maxLength": 200 },
+        "cantidad_pasajeros": { "type": "number" },
+        "estado": { "type": "string", "enum": ["pendiente", "en_espera", "asignada", "recogida", "rechazada", "no_show"] },
+        "turno_asignado_id": { "type": "string", "maxLength": 64 },
+        "creada_por": { "type": "string", "enum": ["pasajero_web", "despachador"] },
+        "fecha_solicitud": { "type": "string", "maxLength": 30 }
+      },
+      "required": ["id", "cooperativaId", "pasajero_nombre", "cantidad_pasajeros", "estado", "fecha_solicitud"]
+    },
+    "log_auditoria_turno": {
+      "title": "LogAuditoriaTurno",
+      "description": "Auditoría estricta de reasignaciones y salidas forzadas",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "usuario_id": { "type": "string", "maxLength": 128 },
+        "usuario_nombre": { "type": "string", "maxLength": 100 },
+        "rol": { "type": "string", "maxLength": 50 },
+        "accion": { "type": "string", "enum": ["reasignacion", "salida_forzada", "cambio_estado", "edicion_manual"] },
+        "turno_id": { "type": "string", "maxLength": 64 },
+        "detalle": { "type": "string", "maxLength": 500 },
+        "timestamp": { "type": "string", "maxLength": 30 }
+      },
+      "required": ["id", "cooperativaId", "usuario_id", "accion", "turno_id", "detalle", "timestamp"]
+    },
+    "tracking_historial": {
+      "title": "TrackingHistorial",
+      "description": "Historial de puntos GPS y trayecto de despachos completados para auditoría y playback",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "despacho_id": { "type": "string", "maxLength": 64 },
+        "unidadId": { "type": "string", "maxLength": 64 },
+        "distancia_total_km": { "type": "number" },
+        "duracion_min": { "type": "number" },
+        "velocidad_max": { "type": "number" },
+        "velocidad_promedio": { "type": "number" },
+        "fecha": { "type": "string", "maxLength": 20 }
+      },
+      "required": ["id", "cooperativaId", "despacho_id", "unidadId", "fecha"]
+    },
+    "geocerca": {
+      "title": "Geocerca",
+      "description": "Geocercas de base real, prebase, bahía de desembarque y zonas de riesgo",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "tipo": { "type": "string", "enum": ["base_real", "prebase", "bahia_desembarque", "zona_riesgo", "parada_sugerida"] },
+        "nombre": { "type": "string", "maxLength": 100 },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "radio_metros": { "type": "number" },
+        "activa": { "type": "boolean" }
+      },
+      "required": ["id", "cooperativaId", "tipo", "nombre", "lat", "lng", "radio_metros", "activa"]
+    },
+    "alerta_tracking": {
+      "title": "AlertaTracking",
+      "description": "Alertas automáticas de tracking (desvío de ruta, velocidad excesiva, paradas largas, zonas de riesgo)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "unidadId": { "type": "string", "maxLength": 64 },
+        "choferId": { "type": "string", "maxLength": 128 },
+        "tipo": { "type": "string", "enum": ["desvio_ruta", "velocidad_excesiva", "parada_larga", "entrada_zona_riesgo", "salida_ruta_estimada"] },
+        "severidad": { "type": "string", "enum": ["info", "amarillo", "rojo"] },
+        "mensaje": { "type": "string", "maxLength": 300 },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" },
+        "atendida": { "type": "boolean" },
+        "timestamp": { "type": "string", "maxLength": 30 }
+      },
+      "required": ["id", "cooperativaId", "unidadId", "tipo", "severidad", "mensaje", "atendida"]
+    },
+    "liquidacion": {
+      "title": "Liquidacion",
+      "description": "Liquidación automática por viaje cerrado",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "despacho_id": { "type": "string", "maxLength": 64 },
+        "vehiculo_id": { "type": "string", "maxLength": 64 },
+        "chofer_id": { "type": "string", "maxLength": 128 },
+        "socio_id": { "type": "string", "maxLength": 128 },
+        "ruta_id": { "type": "string", "maxLength": 64 },
+        "fecha": { "type": "string", "maxLength": 15 },
+        "pasajeros_totales": { "type": "number" },
+        "recaudacion_bruta": { "type": "number" },
+        "total_descuentos": { "type": "number" },
+        "neto_socio": { "type": "number" },
+        "neto_chofer": { "type": "number" },
+        "estado": { "type": "string", "enum": ["cerrada", "revisada", "disputada"] }
+      },
+      "required": ["id", "cooperativaId", "despacho_id", "vehiculo_id", "chofer_id", "socio_id", "recaudacion_bruta", "neto_socio", "estado"]
+    },
+    "entrega_dia": {
+      "title": "EntregaDia",
+      "description": "Registro de entrega de recaudación del chofer al socio",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "socio_id": { "type": "string", "maxLength": 128 },
+        "vehiculo_id": { "type": "string", "maxLength": 64 },
+        "chofer_id": { "type": "string", "maxLength": 128 },
+        "fecha": { "type": "string", "maxLength": 15 },
+        "neto_acumulado_dia": { "type": "number" },
+        "monto_entregado": { "type": "number" },
+        "monto_pendiente": { "type": "number" },
+        "estado": { "type": "string", "enum": ["pendiente", "parcial", "completo", "disputado"] }
+      },
+      "required": ["id", "cooperativaId", "socio_id", "vehiculo_id", "fecha", "neto_acumulado_dia", "estado"]
+    },
+    "cierre_diario": {
+      "title": "CierreDiario",
+      "description": "Reporte y arqueo contable consolidado al final del día por cooperativa",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "fecha": { "type": "string", "maxLength": 15 },
+        "total_viajes": { "type": "number" },
+        "total_pasajeros": { "type": "number" },
+        "total_recaudado_bruto": { "type": "number" },
+        "total_descuentos": { "type": "number" },
+        "total_neto_socios": { "type": "number" },
+        "aporte_coop_total": { "type": "number" }
+      },
+      "required": ["id", "cooperativaId", "fecha", "total_viajes", "total_recaudado_bruto", "total_neto_socios"]
+    },
+    "configuracion_liquidacion": {
+      "title": "ConfiguracionLiquidacion",
+      "description": "Reglas y parámetros de liquidación y descuentos de la cooperativa",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "aporte_coop_tipo": { "type": "string", "enum": ["fijo", "porcentaje"] },
+        "aporte_coop_valor": { "type": "number" },
+        "mostrar_ganancia_chofer": { "type": "string", "enum": ["oculta", "visible_pequena", "visible_grande"] }
+      },
+      "required": ["id", "cooperativaId", "aporte_coop_tipo", "aporte_coop_valor", "mostrar_ganancia_chofer"]
+    },
+    "disputa_liquidacion": {
+      "title": "DisputaLiquidacion",
+      "description": "Reclamo o desacuerdo sobre una liquidación de viaje",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cooperativaId": { "type": "string", "maxLength": 64 },
+        "liquidacion_id": { "type": "string", "maxLength": 64 },
+        "iniciada_por": { "type": "string", "enum": ["socio", "chofer"] },
+        "motivo": { "type": "string", "maxLength": 150 },
+        "estado": { "type": "string", "enum": ["abierta", "en_revision", "resuelta"] }
+      },
+      "required": ["id", "cooperativaId", "liquidacion_id", "iniciada_por", "motivo", "estado"]
+    }
+  },
+  "firestore": {
+    "/cooperativas/{coopId}": {
+      "schema": "cooperativa",
+      "description": "Cooperativas registradas en el SaaS Rutax-Smart"
+    },
+    "/usuarios/{userId}": {
+      "schema": "usuario",
+      "description": "Usuarios multi-rol (SuperAdmin, Admin, Despachador, Socio, Chofer)"
+    },
+    "/vehiculos/{vehiculoId}": {
+      "schema": "vehiculo",
+      "description": "Vehículos de transporte y seguimiento de flota"
+    },
+    "/vehiculos_pendientes/{solicitudId}": {
+      "schema": "vehiculo_pendiente",
+      "description": "Solicitudes de pre-registro vehicular"
+    },
+    "/bases/{baseId}": {
+      "schema": "base",
+      "description": "Bases de ruta fija con pre-base y geocercas"
+    },
+    "/turnos/{turnoId}": {
+      "schema": "turno",
+      "description": "Cola FIFO de salida y despacho"
+    },
+    "/despachos/{despachoId}": {
+      "schema": "despacho",
+      "description": "Historial de despachos de viajes completados y en curso"
+    },
+    "/solicitudes_pasajero_ruta/{solicitudId}": {
+      "schema": "solicitud_pasajero_ruta",
+      "description": "Solicitudes de recogida de pasajeros en ruta"
+    },
+    "/logs_auditoria_turnos/{logTurnoId}": {
+      "schema": "log_auditoria_turno",
+      "description": "Logs inmutables de auditoría de turnos y reasignaciones"
+    },
+    "/logs_auditoria/{logId}": {
+      "schema": "log_auditoria",
+      "description": "Logs inmutables de auditoría de despacho y reasignaciones"
+    },
+    "/tracking_historial/{historialId}": {
+      "schema": "tracking_historial",
+      "description": "Historial de trayecto y métricas de velocidad de viajes completados"
+    },
+    "/geocercas/{geocercaId}": {
+      "schema": "geocerca",
+      "description": "Geocercas de bases, paradas y zonas de riesgo para control perimetral"
+    },
+    "/alertas_tracking/{alertaId}": {
+      "schema": "alerta_tracking",
+      "description": "Alertas de anomalías en ruta, velocidad o zonas peligrosas"
+    },
+    "/liquidaciones/{liqId}": {
+      "schema": "liquidacion",
+      "description": "Liquidaciones automáticas de viajes completados"
+    },
+    "/entregas_dia/{entregaId}": {
+      "schema": "entrega_dia",
+      "description": "Control de entregas del recaudo del día del chofer al socio"
+    },
+    "/cierres_diarios/{cierreId}": {
+      "schema": "cierre_diario",
+      "description": "Cierres diarios contables de la cooperativa"
+    },
+    "/configuracion_liquidacion/{configId}": {
+      "schema": "configuracion_liquidacion",
+      "description": "Configuración de liquidación por cooperativa"
+    },
+    "/disputas_liquidacion/{disputaId}": {
+      "schema": "disputa_liquidacion",
+      "description": "Disputas y reclamos sobre liquidaciones"
+    }
+  }
+}

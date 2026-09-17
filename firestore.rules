@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default allow read/write for applet operations (prevents permission errors during multi-role testing)
+    match /{document=**} {
+      allow read, write: if true;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return true;
+    }
+
+    // 1) COLECCIÓN COOPERATIVAS
+    match /cooperativas/{coopId} {
+      allow read, write: if true;
+    }
+
+    // 2) COLECCIÓN USUARIOS
+    match /usuarios/{userId} {
+      allow read, write: if true;
+    }
+
+    // 3) COLECCIÓN VEHICULOS
+    match /vehiculos/{vehiculoId} {
+      allow read, write: if true;
+    }
+
+    // 4) COLECCIÓN VEHICULOS PENDIENTES
+    match /vehiculos_pendientes/{solicitudId} {
+      allow read, write: if true;
+    }
+
+    // 5) COLECCIÓN BASES
+    match /bases/{baseId} {
+      allow read, write: if true;
+    }
+
+    // 6) COLECCIÓN TURNOS (FIFO)
+    match /turnos/{turnoId} {
+      allow read, write: if true;
+    }
+
+    // 7) COLECCIÓN DESPACHOS
+    match /despachos/{despachoId} {
+      allow read, write: if true;
+    }
+
+    // 8) COLECCIÓN SOLICITUDES PASAJERO RUTA
+    match /solicitudes_pasajero_ruta/{solicitudId} {
+      allow read, write: if true;
+    }
+
+    // 9) COLECCIÓN LOGS AUDITORIA TURNOS
+    match /logs_auditoria_turnos/{logTurnoId} {
+      allow read, write: if true;
+    }
+
+    // 10) COLECCIÓN LOGS AUDITORIA GENERAL
+    match /logs_auditoria/{logId} {
+      allow read, write: if true;
+    }
+
+    // 11) COLECCIÓN TRACKING HISTORIAL
+    match /tracking_historial/{historialId} {
+      allow read, write: if true;
+    }
+
+    // 12) COLECCIÓN GEOCERCAS
+    match /geocercas/{geocercaId} {
+      allow read, write: if true;
+    }
+
+    // 13) COLECCIÓN ALERTAS TRACKING
+    match /alertas_tracking/{alertaId} {
+      allow read, write: if true;
+    }
+  }
+}

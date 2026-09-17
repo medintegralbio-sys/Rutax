@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="neonGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ADE80" />
+      <stop offset="100%" stop-color="#22C55E" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background container with rounded corners -->
+  <rect width="256" height="256" rx="56" fill="url(#bgGrad)" stroke="#1E293B" stroke-width="4" />
+
+  <!-- Road perspective lines -->
+  <path d="M 40 220 L 105 170 L 151 170 L 216 220" fill="none" stroke="#1E293B" stroke-width="3" stroke-dasharray="6,6" />
+  <path d="M 128 170 L 128 225" stroke="#334155" stroke-width="4" stroke-dasharray="8,8" />
+
+  <!-- Glow under car -->
+  <ellipse cx="128" cy="186" rx="72" ry="14" fill="#22C55E" opacity="0.25" filter="url(#glow)" />
+
+  <!-- Sedan Car Body 3/4 Perspective (NOT a van/furgoneta) -->
+  <g transform="translate(10, 8)">
+    <!-- Wheels -->
+    <ellipse cx="68" cy="182" rx="15" ry="15" fill="#0F172A" stroke="#334155" stroke-width="5" />
+    <circle cx="68" cy="182" r="6" fill="#22C55E" />
+    <ellipse cx="168" cy="182" rx="15" ry="15" fill="#0F172A" stroke="#334155" stroke-width="5" />
+    <circle cx="168" cy="182" r="6" fill="#22C55E" />
+
+    <!-- Sedan chassis & lower body -->
+    <path d="M 38 174 C 38 165 44 158 54 157 L 66 157 C 72 165 82 170 94 170 C 106 170 116 165 122 157 L 140 157 C 146 165 156 170 168 170 C 180 170 190 165 196 157 L 204 157 C 214 157 218 163 216 174 L 212 178 C 210 183 205 186 198 186 L 46 186 C 40 186 36 181 38 174 Z" fill="#1E293B" stroke="#334155" stroke-width="2" />
+
+    <!-- Sedan Main Body (Sleek aerodynamic curves) -->
+    <path d="M 40 160 L 52 142 C 55 137 60 134 68 134 L 88 134 L 112 108 C 116 104 122 102 128 102 L 176 102 C 184 102 191 106 195 113 L 208 136 L 214 142 C 218 146 220 152 218 158 L 214 163 C 212 166 208 167 204 167 L 46 167 C 42 167 39 164 40 160 Z" fill="#0F172A" stroke="#22C55E" stroke-width="3" />
+
+    <!-- Windshield & Windows (Sedan 3/4 angle) -->
+    <path d="M 116 112 L 95 134 L 142 134 L 142 110 L 126 110 C 122 110 118 111 116 112 Z" fill="#1E293B" stroke="#22C55E" stroke-width="1.5" opacity="0.9" />
+    <path d="M 148 110 L 148 134 L 188 134 L 178 114 C 176 111 173 110 168 110 Z" fill="#1E293B" stroke="#22C55E" stroke-width="1.5" opacity="0.9" />
+
+    <!-- 4 Passengers Icon inside sedan windows -->
+    <g fill="#22C55E" opacity="0.95">
+      <!-- Passenger 1 (Front) -->
+      <circle cx="132" cy="119" r="4.5" />
+      <path d="M 124 132 C 124 127 127 125 132 125 C 137 125 140 127 140 132 Z" />
+      <!-- Passenger 2 (Driver) -->
+      <circle cx="112" cy="122" r="4" />
+      <path d="M 106 132 C 106 128 108 126 112 126 C 116 126 118 128 118 132 Z" />
+      <!-- Passenger 3 (Rear left) -->
+      <circle cx="158" cy="120" r="4" />
+      <path d="M 152 132 C 152 127 154 126 158 126 C 162 126 164 127 164 132 Z" />
+      <!-- Passenger 4 (Rear right) -->
+      <circle cx="174" cy="122" r="3.5" />
+      <path d="M 168 132 C 168 128 170 127 174 127 C 178 127 180 128 180 132 Z" />
+    </g>
+
+    <!-- Headlights & Tail Lights -->
+    <polygon points="40,152 48,152 44,158 38,158" fill="#F59E0B" filter="url(#glow)" />
+    <polygon points="214,148 219,148 217,156 212,156" fill="#DC2626" filter="url(#glow)" />
+    
+    <!-- Neon green GPS Pin on Sedan Roof -->
+    <g transform="translate(144, 48)">
+      <!-- Pulse radar ring -->
+      <circle cx="0" cy="12" r="18" fill="none" stroke="#22C55E" stroke-width="1.5" opacity="0.4" />
+      <circle cx="0" cy="12" r="26" fill="none" stroke="#22C55E" stroke-width="1" opacity="0.2" stroke-dasharray="3,3" />
+
+      <!-- Green GPS Pin -->
+      <path d="M 0 46 L -7 28 C -14 25 -18 19 -18 12 C -18 2 -10 -6 0 -6 C 10 -6 18 2 18 12 C 18 19 14 25 7 28 Z" fill="url(#neonGreen)" filter="url(#glow)" stroke="#FFFFFF" stroke-width="1.5" />
+      <!-- Pin center dot -->
+      <circle cx="0" cy="12" r="6" fill="#0F172A" />
+      <circle cx="0" cy="12" r="2.5" fill="#FFFFFF" />
+    </g>
+  </g>
+
+  <!-- Brand Typography -->
+  <text x="128" y="240" font-family="'Inter', sans-serif" font-weight="800" font-size="15" fill="#F8FAFC" text-anchor="middle" letter-spacing="2">
+    RUTAX<tspan fill="#22C55E">-SMART</tspan>
+  </text>
+</svg>
