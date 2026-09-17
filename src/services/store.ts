@@ -118,8 +118,10 @@ import {
   deleteGeocercaFromFirestore,
   syncAlertaTrackingToFirestore,
   attendAlertaTrackingInFirestore,
-  deleteCooperativaFromFirestore
+  deleteCooperativaFromFirestore,
+  db
 } from './firebase';
+import { onSnapshot, collection } from 'firebase/firestore';
 import {
   calculateDistanceMeters,
   calculateBearing,
@@ -2275,6 +2277,7 @@ class RutaxStore {
   public currentUserId: string = loadStorage(STORAGE_KEYS.CURRENT_USER, 'usr-admin');
 
   constructor() {
+    this.setupRealtimeSync();
     // Deduplicate vehicles and pending vehicles on startup
     if (this.vehiculos && this.vehiculos.length > 0) {
       const uniqueVehiculos: Vehiculo[] = [];
@@ -3923,6 +3926,45 @@ class RutaxStore {
    * Sincronizar estado completo a Firebase Firestore
    */
 
+  public setupRealtimeSync() {
+    if (typeof window === 'undefined') return;
+
+    // Sincronización en tiempo real para colecciones críticas
+    const collectionsToSync = [
+      { key: 'usuarios', path: 'usuarios', storageKey: STORAGE_KEYS.USUARIOS },
+      { key: 'vehiculos', path: 'vehiculos', storageKey: STORAGE_KEYS.VEHICULOS },
+      { key: 'turnos', path: 'turnos', storageKey: STORAGE_KEYS.TURNOS },
+      { key: 'despachos', path: 'despachos', storageKey: STORAGE_KEYS.DESPACHOS },
+      { key: 'solicitudesPasajeros', path: 'solicitudes_pasajero_ruta', storageKey: STORAGE_KEYS.SOLICITUDES_PASAJEROS },
+      { key: 'alertasTracking', path: 'alertas_tracking', storageKey: STORAGE_KEYS.ALERTAS_TRACKING },
+      { key: 'reservasClientes', path: 'reservas_clientes', storageKey: STORAGE_KEYS.RESERVAS_CLIENTES }
+    ];
+
+    collectionsToSync.forEach(colInfo => {
+      onSnapshot(collection(db, colInfo.path), (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ ...doc.data() }));
+        if (data.length > 0) {
+          (this as any)[colInfo.key] = data;
+          saveStorage(colInfo.storageKey, data);
+          this.notify();
+        }
+      }, (error) => {
+        console.warn(`Error en onSnapshot para ${colInfo.path}:`, error);
+      });
+    });
+
+    // Sincronización de Tracking Live (puntos GPS en tiempo real)
+    onSnapshot(collection(db, 'tracking_live'), (snapshot) => {
+      const newTracking: Record<string, TrackingLive> = { ...this.trackingLive };
+      snapshot.docs.forEach(doc => {
+        newTracking[doc.id] = doc.data() as TrackingLive;
+      });
+      this.trackingLive = newTracking;
+      saveStorage(STORAGE_KEYS.TRACKING_LIVE, this.trackingLive);
+      this.notify();
+    });
+  }
+
   public async hydrateFromFirestore(): Promise<void> {
     try {
       const { fetchUsuariosFromFirestore, fetchVehiculosFromFirestore, fetchBasesFromFirestore, fetchCooperativasFromFirestore } = await import('./firebase');
@@ -4884,11 +4926,11 @@ class RutaxStore {
   }
 
   public desactivarConHuella(
-    choferId: string,
+    driverUid: string,
     tipoHuella: 'normal' | 'coaccion'
   ): { exito: boolean; mensaje: string; esCoaccion: boolean } {
-    const huellaRec = this.huellasRegistradas.find(h => h.chofer_id === choferId);
-    const alertaActiva = this.alertasSeguridad.find(a => a.choferId === choferId && a.estado === 'activa');
+    const huellaRec = this.huellasRegistradas.find(h => h.chofer_id === driverUid);
+    const alertaActiva = this.alertasSeguridad.find(a => a.choferId === driverUid && a.estado === 'activa');
 
     if (tipoHuella === 'normal') {
       stopSecurityAlarm();
@@ -4897,13 +4939,13 @@ class RutaxStore {
         alertaActiva.estado = 'cerrada';
         alertaActiva.resolucion = 'chofer_a_salvo';
         alertaActiva.timestamp_cierre = new Date().toISOString();
-        alertaActiva.cerrada_por = choferId;
+        alertaActiva.cerrada_por = driverUid;
         alertaActiva.tipo_desactivacion = 'huella_normal';
         alertaActiva.observaciones_cierre = 'Alerta desactivada legítimamente mediante Huella Digital (Dedo Índice)';
         saveStorage(STORAGE_KEYS.ALERTAS_SEGURIDAD, this.alertasSeguridad);
       }
 
-      this.addLogSeguridad('huella_normal_usada', `Desactivación legítima con Huella Normal por chofer ${choferId}`, choferId, alertaActiva?.unidadId);
+      this.addLogSeguridad('huella_normal_usada', `Desactivación legítima con Huella Normal por chofer ${driverUid}`, driverUid, alertaActiva?.unidadId);
       this.notify();
 
       return {
@@ -4918,7 +4960,7 @@ class RutaxStore {
         saveStorage(STORAGE_KEYS.ALERTAS_SEGURIDAD, this.alertasSeguridad);
       }
 
-      this.addLogSeguridad('huella_coaccion_usada', `⚠️ HUELLA DE COACCIÓN DETECTADA para chofer ${choferId}. Alerta se mantiene oculta y activa.`, choferId, alertaActiva?.unidadId);
+      this.addLogSeguridad('huella_coaccion_usada', `⚠️ HUELLA DE COACCIÓN DETECTADA para chofer ${driverUid}. Alerta se mantiene oculta y activa.`, driverUid, alertaActiva?.unidadId);
       this.notify();
 
       return {
@@ -4930,18 +4972,18 @@ class RutaxStore {
   }
 
   public desactivarConPIN(
-    choferId: string,
+    driverUid: string,
     pin: string
   ): { exito: boolean; mensaje: string; esCoaccion: boolean } {
-    const huellaRec = this.huellasRegistradas.find(h => h.chofer_id === choferId);
+    const huellaRec = this.huellasRegistradas.find(h => h.chofer_id === driverUid);
     if (!huellaRec) {
       return { exito: false, mensaje: 'No hay registro de seguridad para este conductor', esCoaccion: false };
     }
 
     if (pin === huellaRec.pin_emergencia_6_digitos) {
-      return this.desactivarConHuella(choferId, 'normal');
+      return this.desactivarConHuella(driverUid, 'normal');
     } else if (pin === '9999' || pin === '999999') {
-      return this.desactivarConHuella(choferId, 'coaccion');
+      return this.desactivarConHuella(driverUid, 'coaccion');
     } else {
       return { exito: false, mensaje: 'PIN de seguridad incorrecto', esCoaccion: false };
     }

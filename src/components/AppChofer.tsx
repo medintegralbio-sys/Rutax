@@ -45,7 +45,9 @@ import {
   AlertOctagon,
   Pause,
   MessageSquare,
-  CheckCheck
+  CheckCheck,
+  Truck,
+  RefreshCw
 } from 'lucide-react';
 import { speakNotificationText } from '../services/securityServices';
 
@@ -107,9 +109,33 @@ export const AppChofer: React.FC<AppChoferProps> = ({ currentUser }) => {
       v => v.chofer_titular_id === choferActual?.uid || v.socio_id === choferActual?.uid
     ) ||
     (choferActual?.placa_asignada ? rutaxStore.vehiculos.find(v => v.placa === choferActual.placa_asignada) : undefined) ||
-    (choferActual?.vehiculo_id ? rutaxStore.vehiculos.find(v => v.id === choferActual.vehiculo_id) : undefined) ||
-    rutaxStore.vehiculos.find(v => v.cooperativaId === choferActual?.cooperativaId && v.estado === 'activo') ||
-    rutaxStore.vehiculos[0];
+    (choferActual?.vehiculo_id ? rutaxStore.vehiculos.find(v => v.id === choferActual.vehiculo_id) : undefined);
+
+  // Si no hay vehículo asignado explícitamente, no se asume uno por defecto
+  const hasValidVehicle = !!vehiculo;
+
+  if (!hasValidVehicle) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 text-center space-y-6">
+        <div className="w-24 h-24 bg-rose-500/20 rounded-full flex items-center justify-center border-4 border-rose-500/40">
+          <Truck className="w-12 h-12 text-rose-500" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-white">Unidad no Asignada</h2>
+          <p className="text-slate-400 max-w-xs">
+            No tienes un vehículo vinculado a tu cuenta. Contacta al administrador de la cooperativa para activar tu unidad.
+          </p>
+        </div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 transition-all flex items-center gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          REINTENTAR
+        </button>
+      </div>
+    );
+  }
 
   // Estado de turno de servicio del chofer (desconectado vs en_servicio)
   const [estadoServicio, setEstadoServicio] = useState<'desconectado' | 'en_servicio'>('en_servicio');
@@ -132,6 +158,22 @@ export const AppChofer: React.FC<AppChoferProps> = ({ currentUser }) => {
       setHoraInicioServicio(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     }
     showNotice(nuevoEstado ? '🟢 Estás EN LÍNEA. El sistema te asignará turno al acercarte a una base.' : '🔴 Estás FUERA DE LÍNEA. No se te asignarán turnos.');
+  };
+
+  const handleIniciarTurnoSubmit = () => {
+    if (!vehiculo) return;
+    rutaxStore.setDriverOnlineStatus(vehiculo.id, true);
+    setEstadoServicio('en_servicio');
+    setHoraInicioServicio(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    setShowIniciarShiftModal(false);
+    showNotice('🟢 Estás EN LÍNEA. El sistema te asignará turno al acercarte a una base.');
+  };
+
+  const handleFinalizarTurnoClick = () => {
+    if (!vehiculo) return;
+    rutaxStore.setDriverOnlineStatus(vehiculo.id, false);
+    setEstadoServicio('desconectado');
+    showNotice('🔴 Estás FUERA DE LÍNEA. No se te asignarán turnos.');
   };
 
   const handleVacieCarroBaseB = () => {
@@ -320,7 +362,7 @@ export const AppChofer: React.FC<AppChoferProps> = ({ currentUser }) => {
   const handleUnlockWithFingerprint = (tipoDedo: 'normal' | 'coaccion') => {
     if (!antirroboAlertaId || !choferActual) return;
 
-    const res = rutaxStore.desactivarConHuella(antirroboAlertaId, tipoDedo);
+    const res = rutaxStore.desactivarConHuella(choferActual.uid, tipoDedo);
 
     if (res.exito) {
       // Huella normal: Se apaga legítimamente
@@ -347,7 +389,7 @@ export const AppChofer: React.FC<AppChoferProps> = ({ currentUser }) => {
   const handleUnlockWithPIN = () => {
     if (!antirroboAlertaId || !choferActual || pinInput.length < 4) return;
 
-    const res = rutaxStore.desactivarConPIN(antirroboAlertaId, pinInput.trim());
+    const res = rutaxStore.desactivarConPIN(choferActual.uid, pinInput.trim());
 
     if (res.exito) {
       setBiometricFeedback('✓ PIN correcto. Alarma desactivada.');

@@ -2,83 +2,132 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Default allow read/write for applet operations (prevents permission errors during multi-role testing)
-    match /{document=**} {
-      allow read, write: if true;
-    }
+    // -------------------------------------------------------------------------
+    // 1. Funciones de Ayuda (Motor de Reglas)
+    // -------------------------------------------------------------------------
 
-    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
+    function currentUser() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
     function isSuperAdmin() {
-      return true;
+      return isSignedIn() && currentUser().rol == 'superadmin';
     }
 
-    // 1) COLECCIÓN COOPERATIVAS
+    function isRole(role) {
+      return isSignedIn() && currentUser().rol == role;
+    }
+
+    function isSameCoop(coopId) {
+      return isSignedIn() && (currentUser().cooperativaId == coopId || isSuperAdmin());
+    }
+
+    function isCoopAdmin(coopId) {
+      return isRole('admin_coop') && isSameCoop(coopId);
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. Reglas por Colección (Mapeadas a Rutax-Smart)
+    // -------------------------------------------------------------------------
+
+    // Cooperativas: Solo SuperAdmin crea/edita. Todos leen.
     match /cooperativas/{coopId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
     }
 
-    // 2) COLECCIÓN USUARIOS
+    // Usuarios: Lectura general. Escritura por el propio usuario, AdminCoop o SuperAdmin.
     match /usuarios/{userId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if true; 
+      allow update: if isSuperAdmin() || request.auth.uid == userId || isCoopAdmin(request.resource.data.cooperativaId);
+      allow delete: if isSuperAdmin();
     }
 
-    // 3) COLECCIÓN VEHICULOS
+    // Vehículos: Control total por Admins y Despachadores de su cooperativa.
     match /vehiculos/{vehiculoId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isCoopAdmin(request.resource.data.cooperativaId) || isRole('despachador');
     }
 
-    // 4) COLECCIÓN VEHICULOS PENDIENTES
-    match /vehiculos_pendientes/{solicitudId} {
-      allow read, write: if true;
+    // Vehículos Pendientes: Socios crean, Admins revisan.
+    match /vehiculos_pendientes/{solId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSuperAdmin() || isRole('admin_coop');
     }
 
-    // 5) COLECCIÓN BASES
+    // Bases: Configuración de terminales.
     match /bases/{baseId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isCoopAdmin(request.resource.data.cooperativaId);
     }
 
-    // 6) COLECCIÓN TURNOS (FIFO)
+    // Turnos: Gestión de cola FIFO.
     match /turnos/{turnoId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isSameCoop(request.resource.data.cooperativaId);
     }
 
-    // 7) COLECCIÓN DESPACHOS
+    // Despachos: Historial y viajes en ruta.
     match /despachos/{despachoId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isSameCoop(request.resource.data.cooperativaId);
     }
 
-    // 8) COLECCIÓN SOLICITUDES PASAJERO RUTA
-    match /solicitudes_pasajero_ruta/{solicitudId} {
-      allow read, write: if true;
+    // Solicitudes Pasajero Ruta: Público crea, Choferes/Base procesan.
+    match /solicitudes_pasajero_ruta/{solId} {
+      allow read: if isSignedIn();
+      allow create: if true; 
+      allow update, delete: if isSignedIn();
     }
 
-    // 9) COLECCIÓN LOGS AUDITORIA TURNOS
-    match /logs_auditoria_turnos/{logTurnoId} {
-      allow read, write: if true;
+    // Tracking Live: Posiciones en tiempo real (Escritura por conductores).
+    match /tracking_live/{vehiculoId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); 
     }
 
-    // 10) COLECCIÓN LOGS AUDITORIA GENERAL
-    match /logs_auditoria/{logId} {
-      allow read, write: if true;
-    }
-
-    // 11) COLECCIÓN TRACKING HISTORIAL
-    match /tracking_historial/{historialId} {
-      allow read, write: if true;
-    }
-
-    // 12) COLECCIÓN GEOCERCAS
-    match /geocercas/{geocercaId} {
-      allow read, write: if true;
-    }
-
-    // 13) COLECCIÓN ALERTAS TRACKING
+    // Alertas Tracking: Seguridad preventiva.
     match /alertas_tracking/{alertaId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isSameCoop(request.resource.data.cooperativaId);
+    }
+
+    // Geocercas: Control perimetral.
+    match /geocercas/{geocercaId} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isCoopAdmin(request.resource.data.cooperativaId);
+    }
+
+    // Tracking Historial: Auditoría de ruta.
+    match /tracking_historial/{histId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isSameCoop(request.resource.data.cooperativaId);
+    }
+
+    // Reservas Clientes: Recogidas programadas.
+    match /reservas_clientes/{resId} {
+      allow read: if isSignedIn() || (request.auth == null && resource.data.cliente_telefono == request.query.telefono);
+      allow create: if true; 
+      allow update, delete: if isSignedIn();
+    }
+
+    // Logs Inmutables: Solo lectura y creación.
+    match /logs_auditoria/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    match /logs_auditoria_turnos/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
     }
   }
 }
